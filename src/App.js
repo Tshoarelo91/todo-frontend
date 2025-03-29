@@ -6,76 +6,114 @@ const API_URL = 'https://todo-gray-omega-66.vercel.app';
 function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch todos
   useEffect(() => {
-    fetch(`${API_URL}/api/todos`)
-      .then(response => response.json())
-      .then(data => setTodos(data))
-      .catch(error => console.error('Error:', error));
+    fetchTodos();
   }, []);
 
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos`);
+      if (!response.ok) throw new Error('Failed to fetch todos');
+      const data = await response.json();
+      setTodos(data);
+    } catch (err) {
+      setError('Failed to load todos. Please try again later.');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Add todo
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
 
-    fetch(`${API_URL}/api/todos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: newTodo,
-        completed: false
-      }),
-    })
-      .then(response => response.json())
-      .then(data => {
-        setTodos([...todos, data]);
-        setNewTodo('');
-      })
-      .catch(error => console.error('Error:', error));
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newTodo,
+          completed: false
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to add todo');
+      const data = await response.json();
+      setTodos([...todos, data]);
+      setNewTodo('');
+    } catch (err) {
+      setError('Failed to add todo. Please try again.');
+      console.error('Error:', err);
+    }
   };
 
   // Toggle todo
-  const toggleTodo = (id) => {
+  const toggleTodo = async (id) => {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
 
-    fetch(`${API_URL}/api/todos/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...todo,
-        completed: !todo.completed
-      }),
-    })
-      .then(response => response.json())
-      .then(() => {
-        setTodos(todos.map(t => 
-          t.id === id ? { ...t, completed: !t.completed } : t
-        ));
-      })
-      .catch(error => console.error('Error:', error));
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...todo,
+          completed: !todo.completed
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update todo');
+      const data = await response.json();
+      setTodos(todos.map(t => t.id === id ? data : t));
+    } catch (err) {
+      setError('Failed to update todo. Please try again.');
+      console.error('Error:', err);
+    }
   };
 
   // Delete todo
-  const deleteTodo = (id) => {
-    fetch(`${API_URL}/api/todos/${id}`, {
-      method: 'DELETE',
-    })
-      .then(() => {
-        setTodos(todos.filter(t => t.id !== id));
-      })
-      .catch(error => console.error('Error:', error));
+  const deleteTodo = async (id) => {
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete todo');
+      setTodos(todos.filter(t => t.id !== id));
+    } catch (err) {
+      setError('Failed to delete todo. Please try again.');
+      console.error('Error:', err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="App">
+        <div className="loading">Loading todos...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
       <h1>Todo List</h1>
+      
+      {error && <div className="error-message">{error}</div>}
       
       <form onSubmit={handleSubmit} className="todo-form">
         <input
@@ -88,29 +126,33 @@ function App() {
         <button type="submit" className="add-button">Add</button>
       </form>
 
-      <ul className="todo-list">
-        {todos.map(todo => (
-          <li key={todo.id} className="todo-item">
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => toggleTodo(todo.id)}
-              className="todo-checkbox"
-            />
-            <span 
-              className={`todo-text ${todo.completed ? 'completed' : ''}`}
-            >
-              {todo.title}
-            </span>
-            <button 
-              onClick={() => deleteTodo(todo.id)}
-              className="delete-button"
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      {todos.length === 0 && !loading ? (
+        <p className="empty-message">No todos yet. Add one above!</p>
+      ) : (
+        <ul className="todo-list">
+          {todos.map(todo => (
+            <li key={todo.id} className="todo-item">
+              <input
+                type="checkbox"
+                checked={todo.completed}
+                onChange={() => toggleTodo(todo.id)}
+                className="todo-checkbox"
+              />
+              <span 
+                className={`todo-text ${todo.completed ? 'completed' : ''}`}
+              >
+                {todo.title}
+              </span>
+              <button 
+                onClick={() => deleteTodo(todo.id)}
+                className="delete-button"
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
