@@ -98,6 +98,38 @@ h1 {
   transform: translateY(1px);
 }
 
+/* New Tabs Styling */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.tab:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.tab.active {
+  background-color: #0066ff;
+  color: white;
+  font-weight: 600;
+}
+
 .todo-list {
   list-style: none;
   padding: 0;
@@ -112,6 +144,7 @@ h1 {
   border-radius: 4px;
   transition: all 0.3s ease;
   border: 1px solid #eee;
+  gap: 12px;
 }
 
 .todo-item:hover {
@@ -119,23 +152,26 @@ h1 {
   background-color: #f0f0f0;
 }
 
-.todo-checkbox {
-  margin-right: 12px;
-  width: 20px;
-  height: 20px;
+.status-select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
   cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.status-select:focus {
+  border-color: #0066ff;
 }
 
 .todo-text {
   flex: 1;
-  margin: 0 12px;
+  margin: 0;
   font-size: 16px;
-  transition: all 0.3s ease;
-}
-
-.completed {
-  text-decoration: line-through;
-  color: #888;
 }
 
 .delete-button {
@@ -153,6 +189,43 @@ h1 {
 .delete-button:hover {
   background-color: #c82333;
   opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .App {
+    margin: 20px;
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+
+  .todo-form {
+    flex-direction: column;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .todo-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status-select {
+    width: 100%;
+  }
+
+  .delete-button {
+    width: 100%;
+  }
 }
 
 .App-logo {
@@ -187,24 +260,5 @@ h1 {
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 600px) {
-  .App {
-    margin: 20px;
-    padding: 15px;
-  }
-
-  h1 {
-    font-size: 2em;
-  }
-
-  .todo-form {
-    flex-direction: column;
-  }
-
-  .add-button {
-    width: 100%;
   }
 }

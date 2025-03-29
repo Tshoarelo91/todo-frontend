@@ -3,11 +3,18 @@ import './App.css';
 
 const API_URL = 'https://todo-r7tk.onrender.com';
 
+const STATUSES = {
+  PENDING: 'pending',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed'
+};
+
 function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState(STATUSES.PENDING);
 
   // Fetch todos
   useEffect(() => {
@@ -47,7 +54,7 @@ function App() {
         },
         body: JSON.stringify({
           title: newTodo,
-          completed: false
+          status: STATUSES.PENDING
         }),
       });
 
@@ -65,8 +72,8 @@ function App() {
     }
   };
 
-  // Toggle todo
-  const toggleTodo = async (id) => {
+  // Update todo status
+  const updateTodoStatus = async (id, newStatus) => {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
 
@@ -79,7 +86,7 @@ function App() {
         },
         body: JSON.stringify({
           ...todo,
-          completed: !todo.completed
+          status: newStatus
         }),
       });
 
@@ -93,8 +100,6 @@ function App() {
     } catch (err) {
       setError(err.message || 'Failed to update todo. Please try again.');
       console.error('Error:', err);
-      // Revert optimistic update
-      setTodos([...todos]);
     }
   };
 
@@ -117,6 +122,9 @@ function App() {
       console.error('Error:', err);
     }
   };
+
+  // Filter todos by status
+  const filteredTodos = todos.filter(todo => todo.status === activeTab);
 
   if (loading) {
     return (
@@ -148,21 +156,43 @@ function App() {
         <button type="submit" className="add-button">Add</button>
       </form>
 
-      {todos.length === 0 && !loading ? (
-        <p className="empty-message">No todos yet. Add one above!</p>
+      <div className="tabs">
+        <button 
+          className={`tab ${activeTab === STATUSES.PENDING ? 'active' : ''}`}
+          onClick={() => setActiveTab(STATUSES.PENDING)}
+        >
+          Pending
+        </button>
+        <button 
+          className={`tab ${activeTab === STATUSES.IN_PROGRESS ? 'active' : ''}`}
+          onClick={() => setActiveTab(STATUSES.IN_PROGRESS)}
+        >
+          In Progress
+        </button>
+        <button 
+          className={`tab ${activeTab === STATUSES.COMPLETED ? 'active' : ''}`}
+          onClick={() => setActiveTab(STATUSES.COMPLETED)}
+        >
+          Completed
+        </button>
+      </div>
+
+      {filteredTodos.length === 0 ? (
+        <p className="empty-message">No {activeTab.replace('_', ' ')} todos</p>
       ) : (
         <ul className="todo-list">
-          {todos.map(todo => (
+          {filteredTodos.map(todo => (
             <li key={todo.id} className="todo-item">
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-                className="todo-checkbox"
-              />
-              <span 
-                className={`todo-text ${todo.completed ? 'completed' : ''}`}
+              <select
+                value={todo.status}
+                onChange={(e) => updateTodoStatus(todo.id, e.target.value)}
+                className="status-select"
               >
+                <option value={STATUSES.PENDING}>Pending</option>
+                <option value={STATUSES.IN_PROGRESS}>In Progress</option>
+                <option value={STATUSES.COMPLETED}>Completed</option>
+              </select>
+              <span className="todo-text">
                 {todo.title}
               </span>
               <button 
