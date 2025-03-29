@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'https://todo-gray-omega-66.vercel.app';
+const API_URL = 'https://todo-r7tk.onrender.com';
 
 function App() {
   const [todos, setTodos] = useState([]);
