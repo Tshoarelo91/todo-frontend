@@ -152,30 +152,24 @@ function App() {
           <ProgressChart todos={todos} />
         </div>
         
-        <div className="stats">
-          <div className="stat-item">
-            <span className="stat-label">Total Tasks</span>
-            <span className="stat-value">{todos.length}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Completed</span>
-            <span className="stat-value">
-              {todos.filter(t => t.status === STATUSES.COMPLETED).length}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">In Progress</span>
-            <span className="stat-value">
-              {todos.filter(t => t.status === STATUSES.IN_PROGRESS).length}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Pending</span>
-            <span className="stat-value">
-              {todos.filter(t => t.status === STATUSES.PENDING).length}
-            </span>
-          </div>
-        </div>
+        <table className="stats-table">
+          <thead>
+            <tr>
+              <th>Total Tasks</th>
+              <th>Pending</th>
+              <th>In Progress</th>
+              <th>Completed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{todos.length}</td>
+              <td>{todos.filter(t => t.status === STATUSES.PENDING).length}</td>
+              <td>{todos.filter(t => t.status === STATUSES.IN_PROGRESS).length}</td>
+              <td>{todos.filter(t => t.status === STATUSES.COMPLETED).length}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       
       <form onSubmit={handleSubmit} className="todo-form">
