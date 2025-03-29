@@ -10,6 +10,8 @@ const STATUSES = {
   COMPLETED: 'completed'
 };
 
+const STATUSES_LIST = [STATUSES.PENDING, STATUSES.IN_PROGRESS, STATUSES.COMPLETED];
+
 function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
@@ -234,6 +236,48 @@ function App() {
     return statusMatch && categoryMatch;
   });
 
+  const renderTodoItem = (todo) => {
+    return (
+      <div key={todo.id} className="todo-item">
+        <p className="todo-text">{todo.title}</p>
+        <select
+          className="status-select"
+          value={todo.status}
+          onChange={(e) => updateTodoStatus(todo.id, e.target.value)}
+        >
+          {STATUSES_LIST.map((status) => (
+            <option key={status} value={status}>
+              {status.replace('_', ' ')}
+            </option>
+          ))}
+        </select>
+        <select
+          className="category-select"
+          value={todo.category || ''}
+          onChange={(e) => updateTodoCategory(todo.id, e.target.value)}
+        >
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        <input
+          type="datetime-local"
+          className="date-input"
+          value={todo.due_date || ''}
+          onChange={(e) => updateTodoDueDate(todo.id, e.target.value)}
+        />
+        <button
+          className="delete-button"
+          onClick={() => deleteTodo(todo.id)}
+        >
+          Delete
+        </button>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="App">
@@ -354,47 +398,9 @@ function App() {
           {activeCategory !== 'all' ? ` in ${activeCategory} category` : ''}
         </p>
       ) : (
-        <ul className="todo-list">
-          {filteredTodos.map(todo => (
-            <li key={todo.id} className="todo-item">
-              <select
-                value={todo.status}
-                onChange={(e) => updateTodoStatus(todo.id, e.target.value)}
-                className="status-select"
-              >
-                <option value={STATUSES.PENDING}>Pending</option>
-                <option value={STATUSES.IN_PROGRESS}>In Progress</option>
-                <option value={STATUSES.COMPLETED}>Completed</option>
-              </select>
-              <select
-                value={todo.category}
-                onChange={(e) => updateTodoCategory(todo.id, e.target.value)}
-                className="category-select"
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <span className="todo-text">
-                {todo.title}
-              </span>
-              <input
-                type="datetime-local"
-                value={todo.due_date ? todo.due_date.slice(0, 16) : ''}
-                onChange={(e) => updateTodoDueDate(todo.id, e.target.value)}
-                className="date-input"
-              />
-              <button 
-                onClick={() => deleteTodo(todo.id)}
-                className="delete-button"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="todo-list">
+          {filteredTodos.map(todo => renderTodoItem(todo))}
+        </div>
       )}
     </div>
   );
