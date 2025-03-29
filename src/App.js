@@ -19,7 +19,10 @@ function App() {
       setLoading(true);
       setError(null);
       const response = await fetch(`${API_URL}/api/todos`);
-      if (!response.ok) throw new Error('Failed to fetch todos');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch todos');
+      }
       const data = await response.json();
       setTodos(data);
     } catch (err) {
@@ -48,12 +51,16 @@ function App() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to add todo');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add todo');
+      }
+
       const data = await response.json();
       setTodos([...todos, data]);
       setNewTodo('');
     } catch (err) {
-      setError('Failed to add todo. Please try again.');
+      setError(err.message || 'Failed to add todo. Please try again.');
       console.error('Error:', err);
     }
   };
@@ -76,12 +83,18 @@ function App() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to update todo');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update todo');
+      }
+
       const data = await response.json();
       setTodos(todos.map(t => t.id === id ? data : t));
     } catch (err) {
-      setError('Failed to update todo. Please try again.');
+      setError(err.message || 'Failed to update todo. Please try again.');
       console.error('Error:', err);
+      // Revert optimistic update
+      setTodos([...todos]);
     }
   };
 
@@ -93,10 +106,14 @@ function App() {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete todo');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete todo');
+      }
+
       setTodos(todos.filter(t => t.id !== id));
     } catch (err) {
-      setError('Failed to delete todo. Please try again.');
+      setError(err.message || 'Failed to delete todo. Please try again.');
       console.error('Error:', err);
     }
   };
@@ -113,7 +130,12 @@ function App() {
     <div className="App">
       <h1>Todo List</h1>
       
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message" onClick={() => setError(null)}>
+          {error}
+          <span className="dismiss">(click to dismiss)</span>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="todo-form">
         <input
