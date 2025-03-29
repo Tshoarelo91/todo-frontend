@@ -14,14 +14,33 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [category, setCategory] = useState('personal');
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(STATUSES.PENDING);
+  const [activeCategory, setActiveCategory] = useState('all');
 
-  // Fetch todos
+  // Fetch todos and categories
   useEffect(() => {
-    fetchTodos();
+    Promise.all([
+      fetchTodos(),
+      fetchCategories()
+    ]);
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/categories`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await response.json();
+      setCategories(data);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchTodos = async () => {
     try {
@@ -57,7 +76,8 @@ function App() {
         body: JSON.stringify({
           title: newTodo,
           status: STATUSES.PENDING,
-          due_date: dueDate || null
+          due_date: dueDate || null,
+          category: category
         }),
       });
 
@@ -91,6 +111,37 @@ function App() {
         body: JSON.stringify({
           ...todo,
           status: newStatus
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update todo');
+      }
+
+      const data = await response.json();
+      setTodos(todos.map(t => t.id === id ? data : t));
+    } catch (err) {
+      setError(err.message || 'Failed to update todo. Please try again.');
+      console.error('Error:', err);
+    }
+  };
+
+  // Update todo category
+  const updateTodoCategory = async (id, newCategory) => {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...todo,
+          category: newCategory
         }),
       });
 
@@ -171,8 +222,12 @@ function App() {
     });
   };
 
-  // Filter todos by status
-  const filteredTodos = todos.filter(todo => todo.status === activeTab);
+  // Filter todos by status and category
+  const filteredTodos = todos.filter(todo => {
+    const statusMatch = todo.status === activeTab;
+    const categoryMatch = activeCategory === 'all' || todo.category === activeCategory;
+    return statusMatch && categoryMatch;
+  });
 
   if (loading) {
     return (
@@ -227,6 +282,17 @@ function App() {
           placeholder="Add a new todo"
           className="todo-input"
         />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="category-select"
+        >
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </option>
+          ))}
+        </select>
         <input
           type="datetime-local"
           value={dueDate}
@@ -236,29 +302,52 @@ function App() {
         <button type="submit" className="add-button">Add</button>
       </form>
 
-      <div className="tabs">
-        <button 
-          className={`tab ${activeTab === STATUSES.PENDING ? 'active' : ''}`}
-          onClick={() => setActiveTab(STATUSES.PENDING)}
-        >
-          Pending
-        </button>
-        <button 
-          className={`tab ${activeTab === STATUSES.IN_PROGRESS ? 'active' : ''}`}
-          onClick={() => setActiveTab(STATUSES.IN_PROGRESS)}
-        >
-          In Progress
-        </button>
-        <button 
-          className={`tab ${activeTab === STATUSES.COMPLETED ? 'active' : ''}`}
-          onClick={() => setActiveTab(STATUSES.COMPLETED)}
-        >
-          Completed
-        </button>
+      <div className="filters">
+        <div className="tabs">
+          <button 
+            className={`tab ${activeTab === STATUSES.PENDING ? 'active' : ''}`}
+            onClick={() => setActiveTab(STATUSES.PENDING)}
+          >
+            Pending
+          </button>
+          <button 
+            className={`tab ${activeTab === STATUSES.IN_PROGRESS ? 'active' : ''}`}
+            onClick={() => setActiveTab(STATUSES.IN_PROGRESS)}
+          >
+            In Progress
+          </button>
+          <button 
+            className={`tab ${activeTab === STATUSES.COMPLETED ? 'active' : ''}`}
+            onClick={() => setActiveTab(STATUSES.COMPLETED)}
+          >
+            Completed
+          </button>
+        </div>
+
+        <div className="category-tabs">
+          <button 
+            className={`category-tab ${activeCategory === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveCategory('all')}
+          >
+            All
+          </button>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filteredTodos.length === 0 ? (
-        <p className="empty-message">No {activeTab.replace('_', ' ')} todos</p>
+        <p className="empty-message">
+          No {activeTab.replace('_', ' ')} todos
+          {activeCategory !== 'all' ? ` in ${activeCategory} category` : ''}
+        </p>
       ) : (
         <ul className="todo-list">
           {filteredTodos.map(todo => (
@@ -271,6 +360,17 @@ function App() {
                 <option value={STATUSES.PENDING}>Pending</option>
                 <option value={STATUSES.IN_PROGRESS}>In Progress</option>
                 <option value={STATUSES.COMPLETED}>Completed</option>
+              </select>
+              <select
+                value={todo.category}
+                onChange={(e) => updateTodoCategory(todo.id, e.target.value)}
+                className="category-select"
+              >
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </option>
+                ))}
               </select>
               <span className="todo-text">
                 {todo.title}
