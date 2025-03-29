@@ -22,6 +22,7 @@ function App() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(STATUSES.PENDING);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeStatus, setActiveStatus] = useState('all');
 
   // Fetch todos and categories
   useEffect(() => {
@@ -231,7 +232,7 @@ function App() {
 
   // Filter todos by status and category
   const filteredTodos = todos.filter(todo => {
-    const statusMatch = todo.status === activeTab;
+    const statusMatch = activeStatus === 'all' || todo.status === activeStatus;
     const categoryMatch = activeCategory === 'all' || todo.category === activeCategory;
     return statusMatch && categoryMatch;
   });
@@ -278,6 +279,28 @@ function App() {
     );
   };
 
+  const renderCategoryTabs = () => (
+    <div className="filters">
+      <div className="category-tabs">
+        <button
+          className={`category-tab ${activeCategory === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveCategory('all')}
+        >
+          All
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+            onClick={() => setActiveCategory(cat)}
+          >
+            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="App">
@@ -297,38 +320,14 @@ function App() {
         </div>
       )}
 
-      <div className="dashboard">
-        <div className="chart-section">
-          <h2>Progress Overview</h2>
-          <ProgressChart todos={todos} />
-        </div>
-        
-        <table className="stats-table">
-          <thead>
-            <tr>
-              <th>Total Tasks</th>
-              <th>Pending</th>
-              <th>In Progress</th>
-              <th>Completed</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{todos.length}</td>
-              <td>{todos.filter(t => t.status === STATUSES.PENDING).length}</td>
-              <td>{todos.filter(t => t.status === STATUSES.IN_PROGRESS).length}</td>
-              <td>{todos.filter(t => t.status === STATUSES.COMPLETED).length}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="todo-form">
+      {renderCategoryTabs()}
+
+      <div className="todo-form">
         <input
           type="text"
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
-          placeholder="Add a new todo"
+          placeholder="Add a new todo..."
           className="todo-input"
         />
         <select
@@ -336,7 +335,7 @@ function App() {
           onChange={(e) => setCategory(e.target.value)}
           className="category-select"
         >
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </option>
@@ -348,53 +347,32 @@ function App() {
           onChange={(e) => setDueDate(e.target.value)}
           className="date-input"
         />
-        <button type="submit" className="add-button">Add</button>
-      </form>
+        <button onClick={handleSubmit} className="add-button">
+          Add Todo
+        </button>
+      </div>
 
-      <div className="filters">
-        <div className="tabs">
-          <button 
-            className={`tab ${activeTab === STATUSES.PENDING ? 'active' : ''}`}
-            onClick={() => setActiveTab(STATUSES.PENDING)}
+      <div className="tabs">
+        <button
+          className={`tab ${activeStatus === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveStatus('all')}
+        >
+          All
+        </button>
+        {Object.values(STATUSES).map((status) => (
+          <button
+            key={status}
+            className={`tab ${activeStatus === status ? 'active' : ''}`}
+            onClick={() => setActiveStatus(status)}
           >
-            Pending
+            {status.replace('_', ' ')}
           </button>
-          <button 
-            className={`tab ${activeTab === STATUSES.IN_PROGRESS ? 'active' : ''}`}
-            onClick={() => setActiveTab(STATUSES.IN_PROGRESS)}
-          >
-            In Progress
-          </button>
-          <button 
-            className={`tab ${activeTab === STATUSES.COMPLETED ? 'active' : ''}`}
-            onClick={() => setActiveTab(STATUSES.COMPLETED)}
-          >
-            Completed
-          </button>
-        </div>
-
-        <div className="category-tabs">
-          <button 
-            className={`category-tab ${activeCategory === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            All
-          </button>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
       {filteredTodos.length === 0 ? (
-        <p className="empty-message">
-          No {activeTab.replace('_', ' ')} todos
+        <p className="no-todos">
+          No todos {activeStatus !== 'all' ? `in ${activeStatus} status` : ''}
           {activeCategory !== 'all' ? ` in ${activeCategory} category` : ''}
         </p>
       ) : (
