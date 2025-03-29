@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ProgressChart from './components/ProgressChart';
 import './App.css';
 
 const API_URL = 'https://todo-r7tk.onrender.com';
@@ -144,6 +145,38 @@ function App() {
           <span className="dismiss">(click to dismiss)</span>
         </div>
       )}
+
+      <div className="dashboard">
+        <div className="chart-section">
+          <h2>Progress Overview</h2>
+          <ProgressChart todos={todos} />
+        </div>
+        
+        <div className="stats">
+          <div className="stat-item">
+            <span className="stat-label">Total Tasks</span>
+            <span className="stat-value">{todos.length}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Completed</span>
+            <span className="stat-value">
+              {todos.filter(t => t.status === STATUSES.COMPLETED).length}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">In Progress</span>
+            <span className="stat-value">
+              {todos.filter(t => t.status === STATUSES.IN_PROGRESS).length}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Pending</span>
+            <span className="stat-value">
+              {todos.filter(t => t.status === STATUSES.PENDING).length}
+            </span>
+          </div>
+        </div>
+      </div>
       
       <form onSubmit={handleSubmit} className="todo-form">
         <input
