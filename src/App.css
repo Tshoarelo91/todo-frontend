@@ -77,6 +77,31 @@ h1 {
   border-color: #0066ff;
 }
 
+.date-input {
+  padding: 12px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  color: #333;
+  min-width: 200px;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.date-input:focus {
+  border-color: #0066ff;
+}
+
 .add-button {
   padding: 12px 24px;
   background-color: #0066ff;
@@ -87,6 +112,7 @@ h1 {
   font-size: 16px;
   font-weight: 600;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .add-button:hover {
@@ -258,6 +284,10 @@ h1 {
 
   .todo-form {
     flex-direction: column;
+  }
+
+  .date-input {
+    width: 100%;
   }
 
   .add-button {

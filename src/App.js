@@ -13,6 +13,7 @@ const STATUSES = {
 function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(STATUSES.PENDING);
@@ -55,7 +56,8 @@ function App() {
         },
         body: JSON.stringify({
           title: newTodo,
-          status: STATUSES.PENDING
+          status: STATUSES.PENDING,
+          due_date: dueDate || null
         }),
       });
 
@@ -67,6 +69,7 @@ function App() {
       const data = await response.json();
       setTodos([...todos, data]);
       setNewTodo('');
+      setDueDate('');
     } catch (err) {
       setError(err.message || 'Failed to add todo. Please try again.');
       console.error('Error:', err);
@@ -104,6 +107,37 @@ function App() {
     }
   };
 
+  // Update todo due date
+  const updateTodoDueDate = async (id, newDueDate) => {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...todo,
+          due_date: newDueDate || null
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update todo');
+      }
+
+      const data = await response.json();
+      setTodos(todos.map(t => t.id === id ? data : t));
+    } catch (err) {
+      setError(err.message || 'Failed to update todo. Please try again.');
+      console.error('Error:', err);
+    }
+  };
+
   // Delete todo
   const deleteTodo = async (id) => {
     try {
@@ -122,6 +156,19 @@ function App() {
       setError(err.message || 'Failed to delete todo. Please try again.');
       console.error('Error:', err);
     }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // Filter todos by status
@@ -180,6 +227,12 @@ function App() {
           placeholder="Add a new todo"
           className="todo-input"
         />
+        <input
+          type="datetime-local"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="date-input"
+        />
         <button type="submit" className="add-button">Add</button>
       </form>
 
@@ -222,6 +275,12 @@ function App() {
               <span className="todo-text">
                 {todo.title}
               </span>
+              <input
+                type="datetime-local"
+                value={todo.due_date ? todo.due_date.slice(0, 16) : ''}
+                onChange={(e) => updateTodoDueDate(todo.id, e.target.value)}
+                className="date-input"
+              />
               <button 
                 onClick={() => deleteTodo(todo.id)}
                 className="delete-button"
