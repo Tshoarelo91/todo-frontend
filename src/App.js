@@ -37,8 +37,13 @@ function App() {
       }
       const data = await response.json();
       setCategories(data);
+      setCategory(data[0]); // Set default category to first option
     } catch (err) {
       console.error('Error fetching categories:', err);
+      // Set default categories if API fails
+      const defaultCategories = ['personal', 'consulting', 'work'];
+      setCategories(defaultCategories);
+      setCategory(defaultCategories[0]);
     }
   };
 
