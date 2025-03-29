@@ -1,36 +1,39 @@
 import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Colors
-} from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend, Colors);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const ProgressChart = ({ todos }) => {
-  // Count todos by status
+  // Calculate counts for each status
   const statusCounts = todos.reduce((acc, todo) => {
     acc[todo.status] = (acc[todo.status] || 0) + 1;
     return acc;
   }, {});
 
+  // Prepare data for the chart
   const data = {
     labels: ['Pending', 'In Progress', 'Completed'],
     datasets: [
       {
         data: [
-          statusCounts['pending'] || 0,
-          statusCounts['in_progress'] || 0,
-          statusCounts['completed'] || 0
+          statusCounts.pending || 0,
+          statusCounts.in_progress || 0,
+          statusCounts.completed || 0,
         ],
-        backgroundColor: ['#ffd43b', '#4dabf7', '#51cf66'],
-        borderColor: ['#fab005', '#339af0', '#37b24d'],
-        borderWidth: 1
-      }
-    ]
+        backgroundColor: [
+          '#ffd43b', // Yellow for Pending
+          '#228be6', // Blue for In Progress
+          '#40c057', // Green for Completed
+        ],
+        borderColor: [
+          '#f8f9fa',
+          '#f8f9fa',
+          '#f8f9fa',
+        ],
+        borderWidth: 2,
+      },
+    ],
   };
 
   const options = {
@@ -39,11 +42,8 @@ const ProgressChart = ({ todos }) => {
     plugins: {
       legend: {
         position: 'bottom',
-        align: 'center',
         labels: {
           padding: 20,
-          usePointStyle: true,
-          pointStyle: 'circle',
           font: {
             size: 14
           }
@@ -51,20 +51,21 @@ const ProgressChart = ({ todos }) => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => {
+          label: function(context) {
             const label = context.label || '';
             const value = context.raw || 0;
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+            const percentage = total ? Math.round((value / total) * 100) : 0;
             return `${label}: ${value} (${percentage}%)`;
           }
         }
       }
-    }
+    },
+    cutout: '60%',
   };
 
   return (
-    <div className="chart-container">
+    <div className="chart-container" style={{ height: '300px', marginBottom: '20px' }}>
       <Doughnut data={data} options={options} />
     </div>
   );

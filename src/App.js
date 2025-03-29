@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ProgressChart from './components/ProgressChart';
 import './App.css';
+import ProgressChart from './components/ProgressChart';
 
-const API_URL = 'https://todo-r7tk.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://todo-r7tk.onrender.com';
 
 const STATUSES = {
   PENDING: 'pending',
