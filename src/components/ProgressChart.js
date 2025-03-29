@@ -26,16 +26,8 @@ const ProgressChart = ({ todos }) => {
           statusCounts['in_progress'] || 0,
           statusCounts['completed'] || 0
         ],
-        backgroundColor: [
-          '#ffd43b', // Pending - Yellow
-          '#4dabf7', // In Progress - Blue
-          '#51cf66'  // Completed - Green
-        ],
-        borderColor: [
-          '#fab005',
-          '#339af0',
-          '#37b24d'
-        ],
+        backgroundColor: ['#ffd43b', '#4dabf7', '#51cf66'],
+        borderColor: ['#fab005', '#339af0', '#37b24d'],
         borderWidth: 1
       }
     ]
@@ -47,8 +39,11 @@ const ProgressChart = ({ todos }) => {
     plugins: {
       legend: {
         position: 'bottom',
+        align: 'center',
         labels: {
           padding: 20,
+          usePointStyle: true,
+          pointStyle: 'circle',
           font: {
             size: 14
           }
